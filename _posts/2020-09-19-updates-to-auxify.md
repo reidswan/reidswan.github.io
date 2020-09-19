@@ -14,7 +14,7 @@ After a limited trial run of [Auxify][auxify] - working Friday at my mom's house
     - While a song is being enqueued, it is disabled and cannot be enqueued again until success
 - Fixed a bug that caused rooms to be listed on the owner's home page multiple times (once for each member)
 
-As always the code is available on [my GitHub][my-github]: the [backend](https://github.com/reidswan/auxify-frontend) and the [backend](https://github.com/reidswan/auxify)
+As always the code is available on [my GitHub][my-github]: the [frontend](https://github.com/reidswan/auxify-frontend) and the [backend](https://github.com/reidswan/auxify)
 
 I won't be making announcements for every change to every project, by the by. It's just that both reidswan.com and Auxify are new, and the blog section looked a little bare. I didn't want the introductory post feeling lonely. I've yet to make up my mind what this blog will be dedicated to, and I'm running light on blog post ideas. I'm using this commit to add Google analytics, though; I'll be able to say quite definitively that 0 people are reading this. 
 
