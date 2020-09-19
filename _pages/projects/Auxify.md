@@ -14,7 +14,7 @@ _{{page.blurb}}_
 A little while ago, I was listening to music on Spotify through a bluetooth speaker with some friends. We were passing around my phone whenever someone wanted to enqueue a song of their choice, but it pained me that there wasn't a better way, a way for everyone to add songs without needing to physically take my smartphone. That's when I started working on Auxify. Just sharing a room ID and a room code allows people to joom my room and enqueue songs of their choice onto the play queue whenever they want. Since then, Spotify released the [group session](https://support.spotify.com/us/article/group-session/) feature which fills the same niche, but I finished and launched the site regardless. Auxify is available [here](https://auxify.reidswan.com).
 
 ## What's in a name?
-The name is a portmanteau of "aux chord" and "Spotify" - the idea being users virtually pass around an aux chord, connected to one Spotify account. 
+The name is a portmanteau of "aux cord" and "Spotify" - the idea being users virtually pass around an aux cord, connected to one Spotify account. 
 
 ## The tech
 _You can view the frontend source [here](https://github.com/reidswan/auxify-frontend) and the backend source [here](https://github.com/reidswan/auxify)_
