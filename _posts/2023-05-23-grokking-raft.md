@@ -5,29 +5,29 @@ date:   2023-05-23 00:06:45 +0200
 categories: projects learning raft
 ---
 
-The unique selling point of [Raft][raft] is that it's easy to understand -- at least, far more so than it's scary older cousin Paxos. And while I have a blog post or Medium article or two about it, and played around with the visualizer, I figure a good way to really get it is to implement directly from the paper. So that's what I'm going to do.
+The unique selling point of [Raft][raft] is that it's easy to understand -- at least, far more so than it's scary older cousin Paxos. Although I've read a Medium article or two about it, and played around with the visualizer, I figure a good way to really get it is to implement it directly from [the paper][raft-paper]. But first we need to actually _read_ the paper. Here follow my notes from doing exactly that.
 
 I'll probably have a peek or two at TiKV's [raft-rs][raft-rs] implementation if I get a little stuck, or if I'm looking for some inspiration, but I'll do my darnedest to do as much of it as possible directly from [the paper][raft-paper]. Having skimmed it already, it seems more than doable. I guess there's no real point in designing an understandable consensus algorithm if nobody can understand the paper itself, but kudos to the authors anyway for their approachable writing style. 
 
 _(Too many academics fall into the trap of 'opaque = clever'; myself included, when I dabbled in academic writing back in varsity. Oops.)_
 
-Much of what follows will be my notes from the Raft paper! To squash any potential plagiarism, I want to make it abundantly clear that none of what I'm going to be describing below will be new, and I do not claim any of the ideas below as my own. That honour goes to Diego Ongaro and John Ousterhout of Stanford University. 
+To squash any potential claims of plagiarism, I want to make it abundantly clear that none of what I'm going to be describing below will be new, and I do not claim any of the ideas below as my own. That honour goes to Diego Ongaro and John Ousterhout of Stanford University, Raft's illustrious authors.
 
 ## So what is Raft anyway?
 
-Raft is an algorithm to implement consensus between a collection of servers, called a "cluster". The goal of a consensus algorithm boils down to replicating the same _thing_  reliably across multiple servers, so that if some subset of the servers goes offline, all but the most recent changes to that _thing_ are saved, and operation can continue as normal. In the case of Raft, that _thing_ being replicated is a state machine, the idea being that all the servers in the cluster will eventually contain the exact same state machine. 
+Raft is an algorithm to implement consensus between a collection of servers, called a "cluster". The goal of a consensus algorithm boils down to replicating the same _thing_  reliably across multiple servers, so that if some subset of the servers goes offline, the most recent changes to that _thing_ are saved, and operation can continue as normal. In the case of Raft, that _thing_ being replicated is a state machine, the idea being that all the servers in the cluster will eventually contain the exact same state machine. 
 
-More concretely, Raft replicates a log of entries, and all constituent servers will eventually contain an identical set of these log entries. If you treat these log entries as describing state transitions in a state machine, and you apply these entries in order, you can construct a state machine; and if all the servers have the same entries, all the constructed state machines will be the same! Strictly speaking, though, the log entries don't _have to_ represent a state machine. There is nothing preventing you from using Raft to replicate literal logs -- as in, strings of text -- across multiple servers. 
+More concretely, Raft replicates a log of entries, and all constituent servers will eventually contain an identical set of these log entries. These log entries describe state transitions, or the operations that are applied to the state machine. Apply those entries to a blank state machine in order, and you end up at the same 'final' state machine (state machines are by definition deterministic); and if all the servers have the same entries, all these final state machines will be the same! Strictly speaking, though, the log entries don't _have to_ represent a state machine. There is nothing preventing you from using Raft to replicate literal logs -- as in, strings of text -- across multiple servers, if you desperately wanted to.
 
-## How Raft handles replication
+## Leader election
 
-### Leader election
+Raft uses a strong leader model: a Raft chooses from amongst its members one to be a leader. The leader handles all the client requests, and is responsible for ensuring that log entries are safely and durably replicated to the other nodes in the cluster. The leader's word is law: if a node disagrees with the leader, they will be made to delete any conflicting log entries until agreement is reached.
 
-Raft divides time into sections known as _terms_, and a _term_ starts with a leader election, and lasts until that leader is ousted. Like presidential terms, it is defined by a single leader; unlike presidential terms<sup>1</sup>, Raft terms are not limited by actual wall time (i.e. no 4 year term limit). Typically, terms last until the leader becomes in some way uncontactable, and a new election is triggered. Terms are associated with a term number, an integer used to identify a term between servers, which increases monotonically as elections happen. This allows terms to function as a rudimentary clock: if one term number is less than another, the lower term number is stale, and the command can probably be rejected!
+Raft divides time into sections known as _terms_. A _term_ starts with a leader election, and lasts until that leader is somehow ousted -- in other words, until the leader is for some reason or another not contacting some subset of the other nodes in the cluster. Like presidential terms, Raft terms are defined by a single leader; _unlike_ presidential terms<sup>1</sup>, Raft terms are not limited by actual wall time (i.e. no 4 year term limit). Terms are associated with a term number, an integer used to identify a term between servers, which increases monotonically as elections happen. This allows terms to function as a rudimentary clock: if one term number is less than another, the lower term number is stale, and the command can probably be rejected!
 
 Servers in Raft have three potential states: _follower_, _candidate_ and _leader_. Followers are happy to remain followers, and as long as they have evidence that their leader is alive and well, they will stay in this state, committing the log entries that they are receiving from their leader. This evidence of leader liveliness comes in the form of a regular heartbeat: the leader will constantly ping its followers to prove that it is still around. 
 
-If too much time passes between received heartbeats, followers will have no choice but to assume that their leader is dead, and will transition to the _candidate_ state, in an attempt to become the cluster's new leader. It does so by incrementing its own current term, and then requesting votes from all of the other servers in the cluster. It also casts a vote for itself<sup>2</sup>. 
+If too much time passes between received heartbeats, a follower will have no choice but to assume that their leader is dead, and will transition to the _candidate_ state, in an attempt to become the cluster's new leader. It does so by incrementing its own current term, and then requesting votes from all of the other servers in the cluster. It also casts a vote for itself<sup>2</sup>. 
 
 A candidate transitions to a new state under one of the following conditions:
 
@@ -43,7 +43,7 @@ Thankfully, the Raft designers were clever enough to foresee this: a random elec
 
 This is represented by the following state machine:
 
-![image tooltip here](/images/server-state-flow.png)
+![Server state flow diagram](/images/server-state-flow.png)
 
 Neat! Very few states and transitions to represent a robust and digestible leader election system!
 
