@@ -23,15 +23,15 @@ More concretely, Raft replicates a log of entries, and all constituent servers w
 
 Raft uses a strong leader model: a Raft chooses from amongst its members one to be a leader. The leader handles all the client requests, and is responsible for ensuring that log entries are safely and durably replicated to the other nodes in the cluster. The leader's word is law: if a node disagrees with the leader, they will be made to delete any conflicting log entries until agreement is reached.
 
-Raft divides time into sections known as _terms_. A _term_ starts with a leader election, and lasts until that leader is somehow ousted -- in other words, until the leader is for some reason or another not contacting some subset of the other nodes in the cluster. Like presidential terms, Raft terms are defined by a single leader; _unlike_ presidential terms<sup>1</sup>, Raft terms are not limited by actual wall time (i.e. no 4 year term limit). Terms are associated with a term number, an integer used to identify a term between servers, which increases monotonically as elections happen. This allows terms to function as a rudimentary clock: if one term number is less than another, the lower term number is stale, and the command can probably be rejected!
+Raft divides time into sections known as _terms_. A _term_ starts with a leader election, and lasts until that leader is somehow ousted -- in other words, until the leader is for some reason or another not contacting some subset of the other nodes in the cluster. Like presidential terms, Raft terms are defined by a single leader; _unlike_ presidential terms, Raft terms are not limited by actual wall time (i.e. no 4 year term limit). Terms are associated with a term number, an integer used to identify a term between servers, which increases monotonically as elections happen. This allows terms to function as a rudimentary clock: if one term number is less than another, the lower term number is stale, and the command can probably be rejected!
 
 Servers in Raft have three potential states: _follower_, _candidate_ and _leader_. Followers are happy to remain followers, and as long as they have evidence that their leader is alive and well, they will stay in this state, committing the log entries that they are receiving from their leader. This evidence of leader liveliness comes in the form of a regular heartbeat: the leader will constantly ping its followers to prove that it is still around. 
 
-If too much time passes between received heartbeats, a follower will have no choice but to assume that their leader is dead, and will transition to the _candidate_ state, in an attempt to become the cluster's new leader. It does so by incrementing its own current term, and then requesting votes from all of the other servers in the cluster. It also casts a vote for itself<sup>2</sup>. 
+If too much time passes between received heartbeats, a follower will have no choice but to assume that their leader is dead, and will transition to the _candidate_ state, in an attempt to become the cluster's new leader. It does so by incrementing its own current term, and then requesting votes from all of the other servers in the cluster. It also casts a vote for itself>. 
 
 A candidate transitions to a new state under one of the following conditions:
 
-- the candidate receives votes from the majority of servers in the cluster. It then transitions to leader for this term, and begins sending heartbeats to all of the servers in the cluster to ~assert dominance~ establish its new role and prevent new elections from being triggered. 
+- the candidate receives votes from the majority of servers in the cluster. It then transitions to leader for this term, and begins sending heartbeats to all of the servers in the cluster to ~~assert dominance~~ establish its new role and prevent new elections from being triggered. 
 - the candidate receives a heartbeat or append-entries command from another server claiming to be leader; the candidate will only respect the authority of this server if it has a term number that is greater than or equal to the term number of the candidate. If this is the case, the candidate happily transition back to follower, and follows the orders it just received from the leader; otherwise, the server remains in the candidate state.
 - the candidate does not receive a majority of votes in the cluster, but nor does any other server. In this case, the candidate times out, and starts a new election, incrementing the term once again, and staying in the candidate state. 
 
@@ -51,10 +51,8 @@ Neat! Very few states and transitions to represent a robust and digestible leade
 
 Leader election is just one part of a larger story, albeit a very important one. At this stage, we are able to elect a server to act as the leader of our cluster, but we can't really _do_ much with the cluster yet. Keep an eye out for part 2, where we will dive into how Raft replicates logs from the leader node to the followers, in a safe, reliable, fault-tolerant, understandable manner.
 
+_[There is another element to leader election -- specifically, under what conditions a server will cast their vote for another server. It is quite entangled with log replication, though, so we'll save that for the next part.]_
 <hr />
-
-1 - in a healthy democracy 😶
-2 - “If you don't love yourself, how in the hell you gonna love somebody else?” - RuPaul
 
 [raft]:        https://raft.github.io/
 [raft-rs]:     https://github.com/tikv/raft-rs
