@@ -58,5 +58,13 @@ From a follower's perspective:
 - For every entry yet to be committed that has a logIndex less than or equal to the commitIndex in the AppendEntries call, apply that log to the state machine
 - Respond to the leader, indicating success.
 
+That's it! Log replication in just a few bullet points.
+
+## Wrapping up
+
+So there we have it: replicated state machines that people can actually understand. In fact, all of this is summarized _even more neatly_ in [the raft paper][raft-paper], in Figure 2; Figure 2 is, in fact, probably sufficient to completely implement the Raft algorithm! 
+
+The Raft authors have, in my opinion, crafted a brilliant, easily-digestible algorith, that should be (🤞) very straightforward to implement. I'm going to be giving it a try now. I'll update the blog if I manage!
+
 [grokking-raft-1]: /grokking-raft/
 [raft-paper]:  https://raft.github.io/raft.pdf
