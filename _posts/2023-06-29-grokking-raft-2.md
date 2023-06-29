@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Grokking Raft; or, Yet Another Raft Breakdown, Part 1"
-date:   2023-05-23 00:06:45 +0200
+title:  "Grokking Raft; or, Yet Another Raft Breakdown, Part 2"
+date:   2023-06-29 00:06:45 +0200
 categories: projects learning raft
 ---
 
